@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,9 +34,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
     private RecyclerView mRecyclerView;
     private MovieAdapter mAdapter;
     private ProgressBar mLoadingIndicator;
+    private TextView mErrorMessageTextView;
 
     // THE MOVIE DB constants
-    public static final String THE_MOVIE_DB_URL = "https://api.themoviedb.org/3/movie/%s?api_key=ef83058e91d65966e65b63151aaaf75c";
+    private static final String API_KEY = BuildConfig.API_KEY;
+    public static final String THE_MOVIE_DB_URL = "https://api.themoviedb.org/3/movie/%s?api_key=" + API_KEY;
     public static final String THUMBNAIL_BASE_URL = "https://image.tmdb.org/t/p/w185//";
     private String sortBy;
 
@@ -47,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         setContentView(R.layout.activity_main);
 
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
+        mErrorMessageTextView = (TextView) findViewById(R.id.tv_error_message);
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_movies);
         RecyclerView.LayoutManager layoutManager;
 
@@ -140,6 +146,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            if (!isOnline()) {
+                // If there is no internet connection, show an error message and return
+                mErrorMessageTextView.setVisibility(View.VISIBLE);
+                return;
+            }
+            // Hide the error message and show the progress bar
+            mErrorMessageTextView.setVisibility(View.INVISIBLE);
             mLoadingIndicator.setVisibility(View.VISIBLE);
         }
 
@@ -159,7 +172,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
+            // Hide the progress bar
             mLoadingIndicator.setVisibility(View.INVISIBLE);
+            // Check if the string variable isn't empty or null
             if (s != null && !s.isEmpty()) {
                 // Fetch the data from the entire JSON file
                 fetchFromJson(s);
@@ -169,15 +184,18 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
 
 
     private void fetchFromJson(String jsonData) {
+
         try {
             // Clear the list before fetching new data
             mMovies.clear();
+            mAdapter.notifyDataSetChanged();
 
             JSONObject object = new JSONObject(jsonData);
             JSONArray results = object.getJSONArray("results");
             for (int i = 0; i < results.length(); i++) {
                 JSONObject jsonObject = results.getJSONObject(i);
-                mMovies.add(new Movie(jsonObject.getString("title"),
+                mMovies.add(new Movie(jsonObject.getLong("id"),
+                        jsonObject.getString("title"),
                         THUMBNAIL_BASE_URL + jsonObject.getString("poster_path"),
                         jsonObject.getString("overview"),
                         jsonObject.getDouble("vote_average"),
@@ -186,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
+        // Notify the adapter
         mAdapter.notifyDataSetChanged();
     }
 
@@ -207,6 +225,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         } finally {
             urlConnection.disconnect();
         }
+    }
+
+    // Method for checking the current network status
+    public boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }
 
