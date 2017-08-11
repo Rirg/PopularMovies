@@ -9,9 +9,7 @@ import com.squareup.picasso.Picasso;
 
 public class DetailActivity extends AppCompatActivity {
 
-    private static final String TAG = "DetailActivity";
-
-    Movie mCurrentMovie;
+    private Movie mCurrentMovie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -44,8 +44,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
 
     private SharedPreferences mSharedPreferences;
 
-    private static final String TAG = "MainActivity";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

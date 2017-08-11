@@ -2,4 +2,8 @@
     <string name="app_name">Popular Movies</string>
 
     <string name="error_message">Please check your internet connection</string>
+    <string name="image_poster_description">Poster of the movie</string>
+
+    <string name="menu_title_highest_rated" >Highest rated</string>
+    <string name="menu_title_most_popular">Most popular</string>
 </resources>
