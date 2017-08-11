@@ -11,6 +11,8 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,10 +30,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
     private ArrayList<Movie> mMovies;
     private RecyclerView mRecyclerView;
     private MovieAdapter mAdapter;
+    private ProgressBar mLoadingIndicator;
 
     // THE MOVIE DB constants
-    private String THE_MOVIE_DB_URL = "https://api.themoviedb.org/3/movie/%s?api_key=ef83058e91d65966e65b63151aaaf75c";
-    private String THUMBNAIL_BASE_URL = "https://image.tmdb.org/t/p/w185//";
+    public static final String THE_MOVIE_DB_URL = "https://api.themoviedb.org/3/movie/%s?api_key=ef83058e91d65966e65b63151aaaf75c";
+    public static final String THUMBNAIL_BASE_URL = "https://image.tmdb.org/t/p/w185//";
     private String sortBy;
 
     private SharedPreferences mSharedPreferences;
@@ -43,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_movies);
         RecyclerView.LayoutManager layoutManager;
 
@@ -102,8 +106,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
-        String userChoice = null;
+        // Create a variable to save the current user's choice
+        String userChoice;
 
         switch (item.getItemId()) {
             case R.id.highest_rated_sort_action:
@@ -132,6 +136,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
     }
 
     private class FetchMovies extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+        }
+
         @Override
         protected String doInBackground(String... strings) {
 
@@ -148,7 +159,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            if (s != null || !s.isEmpty()) {
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
+            if (s != null && !s.isEmpty()) {
                 // Fetch the data from the entire JSON file
                 fetchFromJson(s);
             }
