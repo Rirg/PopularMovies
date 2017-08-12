@@ -1,7 +1,6 @@
 package com.example.ricardo.popularmovies;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,8 +19,6 @@ import java.util.Scanner;
 public class FetchMovies extends AsyncTask<Void, Void, String> {
 
     private static final String THUMBNAIL_BASE_URL = "https://image.tmdb.org/t/p/w185//";
-
-    private static final String TAG = "FetchMovies";
 
     private OnTaskCompleted listener;
     private String baseUrl;
@@ -55,7 +52,6 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
         super.onPostExecute(s);
         // Hide the progress bar
         // Check if the string variable isn't empty or null
-        Log.i(TAG, "onPostExecute: " + s);
         if (s != null && !s.isEmpty()) {
             // Fetch the data from the entire JSON file
             fetchFromJson(s);
@@ -84,7 +80,6 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
     }
 
     private void fetchFromJson(String jsonData) {
-
 
         try {
 

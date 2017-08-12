@@ -7,9 +7,18 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class DetailActivity extends AppCompatActivity {
 
     private Movie mCurrentMovie;
+
+    @BindView(R.id.tv_title) TextView title;
+    @BindView(R.id.iv_poster) ImageView poster;
+    @BindView(R.id.tv_synopsis) TextView synopsis;
+    @BindView(R.id.tv_release_date) TextView releaseDate;
+    @BindView(R.id.tv_rating) TextView rating;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,21 +27,18 @@ public class DetailActivity extends AppCompatActivity {
 
         setTitle("Movie Details");
 
+        ButterKnife.bind(this);
+
         if (getIntent().hasExtra("movie")) {
             mCurrentMovie = getIntent().getParcelableExtra("movie");
         }
 
-        TextView title = (TextView) findViewById(R.id.tv_title);
-        ImageView poster = (ImageView) findViewById(R.id.iv_poster);
-        TextView synopsis = (TextView) findViewById(R.id.tv_synopsis);
-        TextView release = (TextView) findViewById(R.id.tv_release_date);
-        TextView rating = (TextView) findViewById(R.id.tv_rating);
 
         Picasso.with(this).load(mCurrentMovie.getPosterUrl()).into(poster);
 
         title.setText(mCurrentMovie.getTitle());
         synopsis.setText(mCurrentMovie.getSynopsis());
-        release.setText(mCurrentMovie.getReleaseDate());
+        releaseDate.setText(mCurrentMovie.getReleaseDate());
         rating.setText(String.valueOf(mCurrentMovie.getRating()) + "/10");
 
     }

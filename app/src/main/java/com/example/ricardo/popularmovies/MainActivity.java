@@ -18,15 +18,20 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity implements MovieAdapter.OnItemClickListener, FetchMovies.OnTaskCompleted {
 
     private ArrayList<Movie> mMovies;
-    private RecyclerView mRecyclerView;
     private MovieAdapter mAdapter;
-    private ProgressBar mLoadingIndicator;
-    private TextView mErrorMessageTextView;
 
-    private static final String TAG = "MainActivity";
+    @BindView(R.id.pb_loading_indicator)
+    ProgressBar mLoadingIndicator;
+    @BindView(R.id.tv_error_message)
+    TextView mErrorMessageTextView;
+    @BindView(R.id.rv_movies)
+    RecyclerView mRecyclerView;
 
     // THE MOVIE DB constants
     private static final String API_KEY = BuildConfig.API_KEY;
@@ -40,21 +45,22 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
-        mErrorMessageTextView = (TextView) findViewById(R.id.tv_error_message);
-        mRecyclerView = (RecyclerView) findViewById(R.id.rv_movies);
-        RecyclerView.LayoutManager layoutManager;
+        ButterKnife.bind(this);
 
         mSharedPreferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         sortBy = mSharedPreferences.getString("sortBy", "popular");
 
-        if (savedInstanceState != null) mMovies = savedInstanceState.getParcelableArrayList("moviesList");
+        // Get the movies list from bundle if it isn't null
+        if (savedInstanceState != null)
+            mMovies = savedInstanceState.getParcelableArrayList("moviesList");
 
+        // If there isn't a movies list available then create a new one and fetch the data
         if (mMovies == null) {
             mMovies = new ArrayList<>();
             getMovies();
         }
 
+        RecyclerView.LayoutManager layoutManager;
         // Check if the device is in portrait or landscape
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             // Set 2 columns in the PORTRAIT orientation
