@@ -14,11 +14,11 @@
         android:layout_height="120dp"
         android:background="#ff009688"
         android:gravity="center_vertical"
+        android:paddingLeft="22dp"
         android:paddingStart="22dp"
         android:textColor="#FFF"
         android:textSize="36sp"
-        tools:text="Interstellar"
-        android:paddingLeft="22dp" />
+        tools:text="Interstellar" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -30,13 +30,13 @@
             android:layout_marginTop="8dp">
 
             <ImageView
-                android:contentDescription="@string/image_poster_description"
                 android:id="@+id/iv_poster"
                 android:layout_width="150dp"
                 android:layout_height="0dp"
                 android:layout_marginLeft="22dp"
                 android:layout_marginStart="22dp"
                 android:adjustViewBounds="true"
+                android:contentDescription="@string/image_poster_description"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:src="@drawable/poster_placeholder" />
@@ -76,6 +76,16 @@
                     android:layout_marginTop="6dp"
                     tools:text="8.1/10" />
 
+                <Button
+                    android:id="@+id/btn_favorite"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="#dadada"
+                    android:maxWidth="20dp"
+                    android:text="Mark as favorite"
+                    android:textSize="10sp" />
+
 
             </LinearLayout>
 
@@ -85,13 +95,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:layout_marginEnd="22dp"
+                android:layout_marginRight="22dp"
                 android:layout_marginTop="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="@id/iv_poster"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/iv_poster"
-                tools:text="Curabitur arcu erat, accumsan id imperdiet et, porttitor at sem. Cras ultricies ligula sed magna dictum porta. Curabitur arcu erat, accumsan id imperdiet et, porttitor at sem."
-                android:layout_marginRight="22dp" />
+                tools:text="Curabitur arcu erat, accumsan id imperdiet et, porttitor at sem. Cras ultricies ligula sed magna dictum porta. Curabitur arcu erat, accumsan id imperdiet et, porttitor at sem." />
 
         </android.support.constraint.ConstraintLayout>
 

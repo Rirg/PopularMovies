@@ -2,6 +2,8 @@ package com.example.ricardo.popularmovies;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,6 +21,7 @@ public class DetailActivity extends AppCompatActivity {
     @BindView(R.id.tv_synopsis) TextView synopsis;
     @BindView(R.id.tv_release_date) TextView releaseDate;
     @BindView(R.id.tv_rating) TextView rating;
+    @BindView(R.id.btn_favorite) Button favoriteBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +43,13 @@ public class DetailActivity extends AppCompatActivity {
         synopsis.setText(mCurrentMovie.getSynopsis());
         releaseDate.setText(mCurrentMovie.getReleaseDate());
         rating.setText(String.valueOf(mCurrentMovie.getRating()) + "/10");
+
+        favoriteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // TODO using the ContentProvider, save the current movie
+            }
+        });
 
     }
 }
