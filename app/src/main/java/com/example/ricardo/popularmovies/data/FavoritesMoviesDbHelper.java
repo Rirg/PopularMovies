@@ -3,18 +3,18 @@ package com.example.ricardo.popularmovies.data;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import com.example.ricardo.popularmovies.data.FavoriteMoviesContract.FavoriteMoviesEntry;
+import com.example.ricardo.popularmovies.data.FavoritesMoviesContract.FavoriteMoviesEntry;
 
 /**
  * Created by Ricardo on 9/6/17.
  */
 
-public class FavoriteMoviesDbHelper extends SQLiteOpenHelper {
+public class FavoritesMoviesDbHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "movies.db";
     public static final int DATABASE_VERSION = 1;
 
-    public FavoriteMoviesDbHelper(Context context) {
+    public FavoritesMoviesDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 

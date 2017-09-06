@@ -23,6 +23,13 @@
             android:name=".DetailActivity"
             android:parentActivityName=".MainActivity">
         </activity>
+
+
+        <provider
+            android:authorities="com.example.ricardo.popularmovies"
+            android:name=".data.FavoritesContentProvider"
+            android:exported="false"/>
+        
     </application>
 
 </manifest>
