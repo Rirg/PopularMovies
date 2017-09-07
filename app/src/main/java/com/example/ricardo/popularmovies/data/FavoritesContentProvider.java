@@ -57,7 +57,7 @@ public class FavoritesContentProvider extends ContentProvider{
                 cursor = db.query(
                         FavoriteMoviesEntry.TABLE_NAME,
                         projection,
-                        FavoriteMoviesEntry.COLUMN_MOVIE_ID + " = ?",
+                        selection,
                         selectionArgs,
                         null,
                         null,
@@ -68,11 +68,12 @@ public class FavoritesContentProvider extends ContentProvider{
                 cursor = db.query(
                         FavoriteMoviesEntry.TABLE_NAME,
                         projection,
-                        selection,
-                        selectionArgs,
+                        FavoriteMoviesEntry.COLUMN_MOVIE_ID + " = ? ",
+                        new String[]{uri.getLastPathSegment()},
                         null,
                         null,
-                        sortOrder);
+                        sortOrder
+                );
                 break;
 
             default:

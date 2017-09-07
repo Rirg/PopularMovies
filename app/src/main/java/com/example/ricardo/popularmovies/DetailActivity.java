@@ -1,6 +1,8 @@
 package com.example.ricardo.popularmovies;
 
 import android.content.ContentValues;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -25,6 +27,9 @@ public class DetailActivity extends AppCompatActivity {
     @BindView(R.id.tv_rating) TextView rating;
     @BindView(R.id.btn_favorite) Button favoriteBtn;
 
+    private static final String TAG = "DetailActivity";
+    boolean isSaved = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,7 +42,10 @@ public class DetailActivity extends AppCompatActivity {
         if (getIntent().hasExtra("movie")) {
             mCurrentMovie = getIntent().getParcelableExtra("movie");
         }
-
+        final Uri uri = Uri.parse(FavoriteMoviesEntry.CONTENT_URI + "/" + mCurrentMovie.getId());
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        if (cursor.getCount() > 0) isSaved = true;
+        cursor.close();
 
         Picasso.with(this).load(mCurrentMovie.getPosterUrl()).into(poster);
 
@@ -50,14 +58,26 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 // TODO using the ContentProvider, save the current movie
-                ContentValues values = new ContentValues();
-                values.put(FavoriteMoviesEntry.COLUMN_MOVIE_ID, mCurrentMovie.getId());
-                values.put(FavoriteMoviesEntry.COLUMN_MOVIE_TITLE, mCurrentMovie.getTitle());
+                // long id = cursor.getLong(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_MOVIE_ID));
+                //Log.i(TAG, "onClick: " + id);
+                if (!isSaved) {
+                    ContentValues values = new ContentValues();
+                    values.put(FavoriteMoviesEntry.COLUMN_MOVIE_ID, mCurrentMovie.getId());
+                    values.put(FavoriteMoviesEntry.COLUMN_MOVIE_TITLE, mCurrentMovie.getTitle());
 
-                getContentResolver().insert(FavoriteMoviesEntry.CONTENT_URI, values);
+                    getContentResolver().insert(FavoriteMoviesEntry.CONTENT_URI, values);
+                    isSaved = true;
+                }
+
+
 
             }
         });
 
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 }
