@@ -18,8 +18,8 @@ import com.example.ricardo.popularmovies.data.FavoritesMoviesContract.FavoriteMo
 
 public class FavoritesContentProvider extends ContentProvider{
 
-    public static final int FAVORITES = 100;
-    public static final int FAVORITE_WITH_ID = 101;
+    public static final int CODE_FAVORITES = 100;
+    public static final int CODE_FAVORITE_WITH_ID = 101;
 
     private FavoritesMoviesDbHelper mFavoritesDbHelper;
     private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -29,9 +29,9 @@ public class FavoritesContentProvider extends ContentProvider{
         UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
         uriMatcher.addURI(FavoritesMoviesContract.AUTHORITY, FavoritesMoviesContract.PATH_FAVORITES,
-                FAVORITES);
+                CODE_FAVORITES);
         uriMatcher.addURI(FavoritesMoviesContract.AUTHORITY, FavoritesMoviesContract.PATH_FAVORITES
-                + "/#", FAVORITE_WITH_ID);
+                + "/#", CODE_FAVORITE_WITH_ID);
 
         return uriMatcher;
     }
@@ -46,8 +46,41 @@ public class FavoritesContentProvider extends ContentProvider{
 
     @Nullable
     @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] strings, @Nullable String s, @Nullable String[] strings1, @Nullable String s1) {
-        return null;
+    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
+                        @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+        Cursor cursor;
+        SQLiteDatabase db = mFavoritesDbHelper.getReadableDatabase();
+
+        int code = sUriMatcher.match(uri);
+        switch (code) {
+            case CODE_FAVORITES:
+                cursor = db.query(
+                        FavoriteMoviesEntry.TABLE_NAME,
+                        projection,
+                        FavoriteMoviesEntry.COLUMN_MOVIE_ID + " = ?",
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+
+            case CODE_FAVORITE_WITH_ID:
+                cursor = db.query(
+                        FavoriteMoviesEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+
+        }
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        return cursor;
     }
 
     @Nullable
@@ -66,7 +99,7 @@ public class FavoritesContentProvider extends ContentProvider{
         Uri returnedUri;
 
         switch (code) {
-            case FAVORITES:
+            case CODE_FAVORITES:
                 long id = db.insert(FavoriteMoviesEntry.TABLE_NAME, null, contentValues);
                 if (id > 0) {
                     returnedUri = ContentUris.withAppendedId(FavoriteMoviesEntry.CONTENT_URI, id);
@@ -84,6 +117,7 @@ public class FavoritesContentProvider extends ContentProvider{
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
+
         return 0;
     }
 
