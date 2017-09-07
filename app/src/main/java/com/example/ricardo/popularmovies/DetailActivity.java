@@ -6,7 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -25,7 +25,7 @@ public class DetailActivity extends AppCompatActivity {
     @BindView(R.id.tv_synopsis) TextView synopsis;
     @BindView(R.id.tv_release_date) TextView releaseDate;
     @BindView(R.id.tv_rating) TextView rating;
-    @BindView(R.id.btn_favorite) Button favoriteBtn;
+    @BindView(R.id.btn_favorite) ImageButton favoriteBtn;
 
     private static final String TAG = "DetailActivity";
     boolean isSaved = false;
@@ -44,7 +44,10 @@ public class DetailActivity extends AppCompatActivity {
         }
         final Uri uri = Uri.parse(FavoriteMoviesEntry.CONTENT_URI + "/" + mCurrentMovie.getId());
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-        if (cursor.getCount() > 0) isSaved = true;
+        if (cursor.getCount() > 0) {
+            isSaved = true;
+            favoriteBtn.setImageResource(R.drawable.ic_favorite_black);
+        }
         cursor.close();
 
         Picasso.with(this).load(mCurrentMovie.getPosterUrl()).into(poster);
@@ -67,17 +70,14 @@ public class DetailActivity extends AppCompatActivity {
 
                     getContentResolver().insert(FavoriteMoviesEntry.CONTENT_URI, values);
                     isSaved = true;
+                    favoriteBtn.setImageResource(R.drawable.ic_favorite_black);
+                } else {
+                    Uri uri = Uri.parse(FavoriteMoviesEntry.CONTENT_URI + "/" + mCurrentMovie.getId());
+                    getContentResolver().delete(uri, null, null);
+                    isSaved = false;
+                    favoriteBtn.setImageResource(R.drawable.ic_favorite_border_black);
                 }
-
-
-
             }
         });
-
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
     }
 }
