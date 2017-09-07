@@ -78,7 +78,7 @@ public class FavoritesContentProvider extends ContentProvider{
                 throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
         getContext().getContentResolver().notifyChange(uri, null);
-        
+
         return returnedUri;
     }
 

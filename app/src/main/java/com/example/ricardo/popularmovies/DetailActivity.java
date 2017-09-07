@@ -1,5 +1,6 @@
 package com.example.ricardo.popularmovies;
 
+import android.content.ContentValues;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -7,6 +8,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.ricardo.popularmovies.data.FavoritesMoviesContract.FavoriteMoviesEntry;
 import com.squareup.picasso.Picasso;
 
 import butterknife.BindView;
@@ -48,6 +50,12 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 // TODO using the ContentProvider, save the current movie
+                ContentValues values = new ContentValues();
+                values.put(FavoriteMoviesEntry.COLUMN_MOVIE_ID, mCurrentMovie.getId());
+                values.put(FavoriteMoviesEntry.COLUMN_MOVIE_TITLE, mCurrentMovie.getTitle());
+
+                getContentResolver().insert(FavoriteMoviesEntry.CONTENT_URI, values);
+
             }
         });
 
