@@ -79,5 +79,7 @@ public class DetailActivity extends AppCompatActivity {
                 }
             }
         });
+
+        //TODO fetch the trailers from the API link with JSON, just the trailer type
     }
 }

@@ -1,6 +1,7 @@
 package com.example.ricardo.popularmovies;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,6 +24,8 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
     private OnTaskCompleted listener;
     private String baseUrl;
     private String sortBy;
+
+    private static final String TAG = "FetchMovies";
 
     interface OnTaskCompleted{
         void onTaskCompleted(Movie movie);
@@ -63,6 +66,8 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
     private static String getResponseFromHttpUrl(URL url) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
+
+            Log.i(TAG, "getResponseFromHttpUrl: " + url.toString());
             InputStream in = urlConnection.getInputStream();
 
             Scanner scanner = new Scanner(in);

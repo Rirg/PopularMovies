@@ -1,108 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context="com.example.ricardo.popularmovies.DetailActivity">
 
-
-    <TextView
-        android:id="@+id/tv_title"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:background="#ff009688"
-        android:gravity="center_vertical"
-        android:paddingLeft="22dp"
-        android:paddingStart="22dp"
-        android:textColor="#FFF"
-        android:textSize="36sp"
-        tools:text="Interstellar" />
+        android:layout_height="wrap_content">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
 
-        <android.support.constraint.ConstraintLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:background="#ff009688"
+            android:gravity="center_vertical"
+            android:paddingLeft="22dp"
+            android:paddingStart="22dp"
+            android:textColor="#FFF"
+            android:textSize="36sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Interstellar" />
+
+
+        <ImageView
+            android:id="@+id/iv_poster"
+            android:layout_width="150dp"
+            android:layout_height="0dp"
+            android:layout_marginLeft="22dp"
+            android:layout_marginStart="22dp"
+            android:layout_marginTop="16dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/image_poster_description"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_title"
+            tools:src="@drawable/poster_placeholder" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp">
-
-            <ImageView
-                android:id="@+id/iv_poster"
-                android:layout_width="150dp"
-                android:layout_height="0dp"
-                android:layout_marginLeft="22dp"
-                android:layout_marginStart="22dp"
-                android:adjustViewBounds="true"
-                android:contentDescription="@string/image_poster_description"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:src="@drawable/poster_placeholder" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="38dp"
-                android:layout_marginStart="38dp"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical"
-                app:layout_constraintLeft_toRightOf="@+id/iv_poster"
-                app:layout_constraintTop_toTopOf="@+id/iv_poster">
-
-                <TextView
-                    android:id="@+id/tv_release_date"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="22sp"
-                    tools:text="2015" />
-
-                <!-- Set the visibility of this view to gone for now -->
-                <TextView
-                    android:id="@+id/tv_duration"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:textSize="18sp"
-                    android:textStyle="italic"
-                    android:visibility="gone"
-                    tools:text="120min" />
-
-                <TextView
-                    android:id="@+id/tv_rating"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    tools:text="8.1/10" />
-
-                <ImageButton
-                    android:id="@+id/btn_favorite"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:background="@android:color/transparent"
-                    android:src="@drawable/ic_favorite_border_black" />
-
-
-            </LinearLayout>
+            android:layout_marginLeft="38dp"
+            android:layout_marginStart="38dp"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            app:layout_constraintLeft_toRightOf="@+id/iv_poster"
+            app:layout_constraintTop_toTopOf="@+id/iv_poster">
 
             <TextView
-                android:id="@+id/tv_synopsis"
-                android:layout_width="0dp"
+                android:id="@+id/tv_release_date"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:layout_marginEnd="22dp"
-                android:layout_marginRight="22dp"
-                android:layout_marginTop="16dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="@id/iv_poster"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/iv_poster"
-                tools:text="Curabitur arcu erat, accumsan id imperdiet et, porttitor at sem. Cras ultricies ligula sed magna dictum porta. Curabitur arcu erat, accumsan id imperdiet et, porttitor at sem." />
+                android:textSize="22sp"
+                tools:text="2015" />
 
-        </android.support.constraint.ConstraintLayout>
+            <!-- Set the visibility of this view to gone for now -->
+            <TextView
+                android:id="@+id/tv_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textSize="18sp"
+                android:textStyle="italic"
+                android:visibility="gone"
+                tools:text="120min" />
 
-    </ScrollView>
+            <TextView
+                android:id="@+id/tv_rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                tools:text="8.1/10" />
 
-</LinearLayout>
+            <ImageButton
+                android:id="@+id/btn_favorite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_favorite_border_black" />
+
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_synopsis"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="22dp"
+            android:layout_marginRight="22dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintLeft_toLeftOf="@+id/iv_poster"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/iv_poster"
+            tools:text="Curabitur arcu erat, accumsan id imperdiet et, porttitor at sem. Cras ultricies ligula sed magna dictum porta. Curabitur arcu erat, accumsan id imperdiet et, porttitor at sem." />
+
+        <View
+            android:id="@+id/separator_line"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="#000"
+            app:layout_constraintLeft_toLeftOf="@id/tv_synopsis"
+            app:layout_constraintRight_toRightOf="@id/tv_synopsis"
+            app:layout_constraintTop_toBottomOf="@+id/tv_synopsis" />
+
+        <TextView
+            android:id="@+id/tv_trailer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/trailer"
+            app:layout_constraintLeft_toLeftOf="@id/separator_line"
+            app:layout_constraintTop_toBottomOf="@id/separator_line" />
+
+        <ImageButton
+            android:id="@+id/ib_trailer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_play_arrow_black"
+            app:layout_constraintLeft_toLeftOf="@id/tv_trailer"
+            app:layout_constraintTop_toBottomOf="@id/tv_trailer" />
+
+        <TextView
+            android:id="@+id/tv_trailer_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            app:layout_constraintBottom_toBottomOf="@id/ib_trailer"
+            app:layout_constraintLeft_toRightOf="@id/ib_trailer"
+            app:layout_constraintTop_toTopOf="@id/ib_trailer"
+            tools:text="Trailer oficial Sony Pictures" />
+
+
+    </android.support.constraint.ConstraintLayout>
+
+</ScrollView>

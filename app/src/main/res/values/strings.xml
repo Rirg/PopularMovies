@@ -6,4 +6,6 @@
 
     <string name="menu_title_highest_rated" >Highest rated</string>
     <string name="menu_title_most_popular">Most popular</string>
+
+    <string name="trailer">Trailer:</string>
 </resources>
