@@ -1,4 +1,4 @@
-package com.example.ricardo.popularmovies;
+package com.example.ricardo.popularmovies.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.example.ricardo.popularmovies.R;
+import com.example.ricardo.popularmovies.pojos.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -34,7 +36,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     @Override
     public MovieViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        View view = LayoutInflater.from(mContext).inflate(R.layout.recyclerview_item, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.rv_movies_item, parent, false);
         return new MovieViewHolder(view);
     }
 

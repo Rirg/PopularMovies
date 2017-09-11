@@ -1,10 +1,13 @@
-package com.example.ricardo.popularmovies;
+package com.example.ricardo.popularmovies.utils;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.example.ricardo.popularmovies.pojos.Movie;
+import com.example.ricardo.popularmovies.pojos.Review;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,8 +39,8 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
     public static final int REVIEWS_CODE = 200;
     public static final int TRAILER_CODE = 300;
 
-    interface OnTaskCompleted {
-        void onTaskCompleted(Movie movie, String review, String trailerKey, String trailerTitle);
+    public interface OnTaskCompleted {
+        void onTaskCompleted(Movie movie, Review review, String trailerKey, String trailerTitle);
     }
 
     public FetchMovies(Context context, OnTaskCompleted listener, String baseUrl, String sortBy, int code) {
@@ -121,7 +124,13 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
                     break;
 
                 case REVIEWS_CODE:
+                    for (int i = 0; i < results.length(); i++) {
+                        JSONObject jsonObject = results.getJSONObject(i);
+                        Review review = new Review(jsonObject.getString("author"),
+                                jsonObject.getString("content"));
 
+                        listener.onTaskCompleted(null, review, null, null);
+                    }
                     break;
 
                 case TRAILER_CODE:

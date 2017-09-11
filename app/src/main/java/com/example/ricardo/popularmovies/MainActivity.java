@@ -14,6 +14,11 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.example.ricardo.popularmovies.adapters.MovieAdapter;
+import com.example.ricardo.popularmovies.pojos.Movie;
+import com.example.ricardo.popularmovies.pojos.Review;
+import com.example.ricardo.popularmovies.utils.FetchMovies;
+
 import java.util.ArrayList;
 
 import butterknife.BindView;
@@ -139,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
 
 
     @Override
-    public void onTaskCompleted(Movie movie, String review, String trailerKey, String trailerTitle) {
+    public void onTaskCompleted(Movie movie, Review review, String trailerKey, String trailerTitle) {
         // Hide the progress
         mLoadingIndicator.setVisibility(View.INVISIBLE);
 
