@@ -1,5 +1,8 @@
 package com.example.ricardo.popularmovies;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -24,21 +27,33 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
     private OnTaskCompleted listener;
     private String baseUrl;
     private String sortBy;
+    private Context mContext;
+    private int mCode;
 
     private static final String TAG = "FetchMovies";
 
-    interface OnTaskCompleted{
-        void onTaskCompleted(Movie movie);
+    public static final int MOVIES_CODE = 100;
+    public static final int REVIEWS_CODE = 200;
+    public static final int TRAILER_CODE = 300;
+
+    interface OnTaskCompleted {
+        void onTaskCompleted(Movie movie, String review, String trailerKey, String trailerTitle);
     }
 
-    public FetchMovies(OnTaskCompleted listener, String baseUrl, String sortBy){
+    public FetchMovies(Context context, OnTaskCompleted listener, String baseUrl, String sortBy, int code) {
+        this.mContext = context;
         this.listener = listener;
         this.baseUrl = baseUrl;
         this.sortBy = sortBy;
+        this.mCode = code;
     }
+
 
     @Override
     protected String doInBackground(Void... voids) {
+
+        if (!isOnline()) return null;
+
 
         String movieData = null;
         String finalUrl = String.format(baseUrl, sortBy);
@@ -59,7 +74,7 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
             // Fetch the data from the entire JSON file
             fetchFromJson(s);
         } else {
-            listener.onTaskCompleted(null);
+            listener.onTaskCompleted(null, null, null, null);
         }
     }
 
@@ -90,19 +105,41 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
 
             JSONObject object = new JSONObject(jsonData);
             JSONArray results = object.getJSONArray("results");
-            for (int i = 0; i < results.length(); i++) {
-                JSONObject jsonObject = results.getJSONObject(i);
-                Movie movie = new Movie(jsonObject.getLong("id"),
-                        jsonObject.getString("title"),
-                        THUMBNAIL_BASE_URL + jsonObject.getString("poster_path"),
-                        jsonObject.getString("overview"),
-                        jsonObject.getDouble("vote_average"),
-                        jsonObject.getString("release_date"));
-                listener.onTaskCompleted(movie);
+
+            switch (mCode) {
+                case MOVIES_CODE:
+                    for (int i = 0; i < results.length(); i++) {
+                        JSONObject jsonObject = results.getJSONObject(i);
+                        Movie movie = new Movie(jsonObject.getLong("id"),
+                                jsonObject.getString("title"),
+                                THUMBNAIL_BASE_URL + jsonObject.getString("poster_path"),
+                                jsonObject.getString("overview"),
+                                jsonObject.getDouble("vote_average"),
+                                jsonObject.getString("release_date"));
+                        listener.onTaskCompleted(movie, null, null, null);
+                    }
+                    break;
+
+                case REVIEWS_CODE:
+
+                    break;
+
+                case TRAILER_CODE:
+                    JSONObject jsonObject = results.getJSONObject(0);
+                    listener.onTaskCompleted(null, null, jsonObject.getString("key"), jsonObject.getString("name"));
+                    break;
             }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    // Method for checking the current network status
+    public boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
 }

@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -57,7 +55,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         // If there isn't a movies list available then create a new one and fetch the data
         if (mMovies == null) {
             mMovies = new ArrayList<>();
-            getMovies();
+            mErrorMessageTextView.setVisibility(View.INVISIBLE);
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+            new FetchMovies(this, this, THE_MOVIE_DB_URL, sortBy, 100).execute();
         }
 
         RecyclerView.LayoutManager layoutManager;
@@ -131,30 +131,15 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
             // Fetch new data with the new sort order
             mMovies.clear();
             mAdapter.notifyDataSetChanged();
-            getMovies();
+            new FetchMovies(this, this, THE_MOVIE_DB_URL, sortBy, 100).execute();
         }
         return true;
     }
 
-    // Method for checking the current network status
-    public boolean isOnline() {
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnectedOrConnecting();
-    }
 
-    private void getMovies() {
-        if (isOnline()) {
-            mErrorMessageTextView.setVisibility(View.INVISIBLE);
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-            new FetchMovies(MainActivity.this, THE_MOVIE_DB_URL, sortBy).execute();
-        } else {
-            mErrorMessageTextView.setVisibility(View.VISIBLE);
-        }
-    }
 
     @Override
-    public void onTaskCompleted(Movie movie) {
+    public void onTaskCompleted(Movie movie, String review, String trailerKey, String trailerTitle) {
         // Hide the progress
         mLoadingIndicator.setVisibility(View.INVISIBLE);
 
@@ -162,6 +147,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         if (movie != null) {
             mMovies.add(movie);
             mAdapter.notifyDataSetChanged();
+        } else {
+            mErrorMessageTextView.setVisibility(View.VISIBLE);
         }
     }
 }
