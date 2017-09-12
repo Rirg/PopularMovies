@@ -9,6 +9,10 @@
         <item
             android:id="@+id/highest_rated_sort_action"
             android:title="@string/menu_title_highest_rated" />
+
+        <item
+            android:id="@+id/favorites_sort_action"
+            android:title="@string/menu_title_favorites" />
     </group>
 
 </menu>

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -15,6 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.ricardo.popularmovies.adapters.MovieAdapter;
+import com.example.ricardo.popularmovies.data.FavoritesMoviesContract.FavoriteMoviesEntry;
 import com.example.ricardo.popularmovies.pojos.Movie;
 import com.example.ricardo.popularmovies.pojos.Review;
 import com.example.ricardo.popularmovies.utils.FetchMovies;
@@ -43,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
 
     private SharedPreferences mSharedPreferences;
 
+    private static final String TAG = "MainActivity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,13 +62,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
             mMovies = savedInstanceState.getParcelableArrayList("moviesList");
 
         // If there isn't a movies list available then create a new one and fetch the data
-        if (mMovies == null) {
-            mMovies = new ArrayList<>();
+        if (mMovies == null) mMovies = new ArrayList<>();
+
+        if (!sortBy.equals("favorites")) {
             mErrorMessageTextView.setVisibility(View.INVISIBLE);
             mLoadingIndicator.setVisibility(View.VISIBLE);
             new FetchMovies(this, this, THE_MOVIE_DB_URL, sortBy, 100).execute();
         }
-
         RecyclerView.LayoutManager layoutManager;
         // Check if the device is in portrait or landscape
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -79,6 +83,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
 
         mAdapter = new MovieAdapter(this, mMovies, this);
         mRecyclerView.setAdapter(mAdapter);
+
+        if (sortBy.equals("favorites")) {
+            getFavorites();
+        }
     }
 
     @Override
@@ -93,6 +101,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
     public void onSingleMovieClickListener(int pos) {
         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
         intent.putExtra("movie", mMovies.get(pos));
+        if (mMovies.get(pos).getBlobPoster() != null) {
+            intent.putExtra("blob", mMovies.get(pos).getBlobPoster());
+        }
         startActivity(intent);
     }
 
@@ -123,6 +134,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
                 userChoice = "popular";
                 item.setChecked(true);
                 break;
+            case R.id.favorites_sort_action:
+                userChoice = "favorites";
+                item.setChecked(true);
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -136,7 +151,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
             // Fetch new data with the new sort order
             mMovies.clear();
             mAdapter.notifyDataSetChanged();
-            new FetchMovies(this, this, THE_MOVIE_DB_URL, sortBy, 100).execute();
+            if (!sortBy.equals("favorites")) {
+                new FetchMovies(this, this, THE_MOVIE_DB_URL, sortBy, 100).execute();
+            } else {
+                getFavorites();
+            }
         }
         return true;
     }
@@ -153,6 +172,37 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
             mMovies.add(movie);
             mAdapter.notifyDataSetChanged();
         } else {
+            mErrorMessageTextView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void getFavorites() {
+        // Clear the list before query
+        mMovies.clear();
+
+        // Query all the favorites using the provider
+        Cursor cursor = getContentResolver().query(
+                FavoriteMoviesEntry.CONTENT_URI, null, null, null, null);
+
+        // Check if the user saved any favorites
+        if (cursor != null && cursor.getCount() > 0) {
+            mErrorMessageTextView.setVisibility(View.INVISIBLE);
+            while (cursor.moveToNext()) {
+                Movie movie = new Movie(cursor.getInt(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_MOVIE_ID)),
+                        cursor.getString(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_MOVIE_TITLE)),
+                        null,
+                        cursor.getBlob(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_MOVIE_POSTER)),
+                        cursor.getString(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_SYNOPSIS)),
+                        cursor.getDouble(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_RATING)),
+                        cursor.getString(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_RELEASE_DATE)));
+
+                mMovies.add(movie);
+            }
+            cursor.close();
+            mAdapter.notifyDataSetChanged();
+        } else {
+            // Show a message if the user doesn't have any favorite movie saved yet.
+            mErrorMessageTextView.setText("You don't have any favorites yet!");
             mErrorMessageTextView.setVisibility(View.VISIBLE);
         }
     }

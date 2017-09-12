@@ -25,7 +25,11 @@ public class FavoritesMoviesDbHelper extends SQLiteOpenHelper {
                 FavoriteMoviesEntry.TABLE_NAME + " (" +
                 FavoriteMoviesEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 FavoriteMoviesEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
-                FavoriteMoviesEntry.COLUMN_MOVIE_TITLE + " TEXT NOT NULL" +
+                FavoriteMoviesEntry.COLUMN_MOVIE_TITLE + " TEXT NOT NULL, " +
+                FavoriteMoviesEntry.COLUMN_MOVIE_POSTER + " BLOB, " +
+                FavoriteMoviesEntry.COLUMN_SYNOPSIS + " TEXT, " +
+                FavoriteMoviesEntry.COLUMN_RATING + " INTEGER, " +
+                FavoriteMoviesEntry.COLUMN_RELEASE_DATE + " TEXT" +
                 ");";
 
         sqLiteDatabase.execSQL(SQL_CREATE_FAVORITE_MOVIES_TABLE);

@@ -1,6 +1,8 @@
 package com.example.ricardo.popularmovies.adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -64,10 +66,16 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         }
 
         void bind(int pos) {
-            Picasso.with(mContext)
-                    .load(mMovies.get(pos).getPosterUrl())
-                    .placeholder(R.drawable.poster_placeholder)
-                    .into(posterImageView);
+            if (mMovies.get(pos).getPosterUrl() != null) {
+                Picasso.with(mContext)
+                        .load(mMovies.get(pos).getPosterUrl())
+                        .placeholder(R.drawable.poster_placeholder)
+                        .into(posterImageView);
+            } else {
+                byte[] bitmapdata = mMovies.get(pos).getBlobPoster();
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bitmapdata, 0, bitmapdata.length);
+                posterImageView.setImageBitmap(bitmap);
+            }
         }
 
         @Override

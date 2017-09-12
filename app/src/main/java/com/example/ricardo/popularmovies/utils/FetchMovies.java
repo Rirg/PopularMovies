@@ -116,6 +116,7 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
                         Movie movie = new Movie(jsonObject.getLong("id"),
                                 jsonObject.getString("title"),
                                 THUMBNAIL_BASE_URL + jsonObject.getString("poster_path"),
+                                null,
                                 jsonObject.getString("overview"),
                                 jsonObject.getDouble("vote_average"),
                                 jsonObject.getString("release_date"));
