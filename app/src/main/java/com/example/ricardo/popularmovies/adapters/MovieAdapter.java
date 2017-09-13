@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -94,6 +93,11 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         }
     }
 
+    /**
+     * This is a helper method to swap the movies list passing a cursor from the CursorLoader
+     * @param cursor has the entire data from the favorites db
+     * @param movies the ArrayList containing the current List or an empty one
+     */
     public void swapList(Cursor cursor, ArrayList<Movie> movies) {
 
         if (cursor != null && cursor.getCount() > 0) {
@@ -110,7 +114,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             }
         }
         mMovies = movies;
-        Log.i(TAG, "swapList: " + "It changed!");
         notifyDataSetChanged();
     }
 }

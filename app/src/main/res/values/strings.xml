@@ -11,4 +11,7 @@
 
     <string name="reviews">Reviews</string>
     <string name="trailer">Trailer</string>
+
+    <string name="content_description_favorite_btn">Add or delete from favorites</string>
+    <string name="content_description_trailer_btn">Open movie trailer</string>
 </resources>

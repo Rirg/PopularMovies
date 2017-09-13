@@ -12,7 +12,6 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,9 +33,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         FetchMovies.OnTaskCompleted,
         LoaderManager.LoaderCallbacks<Cursor> {
 
-    private ArrayList<Movie> mMovies;
-    private MovieAdapter mAdapter;
-
+    // UI
     @BindView(R.id.pb_loading_indicator)
     ProgressBar mLoadingIndicator;
     @BindView(R.id.tv_error_message)
@@ -44,16 +41,17 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
     @BindView(R.id.rv_movies)
     RecyclerView mRecyclerView;
 
+    private ArrayList<Movie> mMovies;
+    private MovieAdapter mAdapter;
+
     // THE MOVIE DB constants
     private static final String API_KEY = BuildConfig.API_KEY;
     public static final String THE_MOVIE_DB_URL = "https://api.themoviedb.org/3/movie/%s?api_key=" + API_KEY;
     private static final int ID_MOVIES_LOADER = 22;
 
-    // Variables to save the sort user preference
+    // Variables to save the sort criteria user preference
     private String sortBy;
     private SharedPreferences mSharedPreferences;
-
-    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         if (!sortBy.equals("favorites")) {
             mErrorMessageTextView.setVisibility(View.INVISIBLE);
             mLoadingIndicator.setVisibility(View.VISIBLE);
-            new FetchMovies(this, this, THE_MOVIE_DB_URL, sortBy, 100).execute();
+            new FetchMovies(this, this, THE_MOVIE_DB_URL, sortBy, FetchMovies.MOVIES_CODE).execute();
         }
         // Create a LayoutManager for the RecyclerView
         RecyclerView.LayoutManager layoutManager;
@@ -144,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         // Create a variable to save the current user's choice
         String userChoice;
 
+        // Save the user selection and check the corresponding checkbox
         switch (item.getItemId()) {
             case R.id.highest_rated_sort_action:
                 userChoice = "top_rated";
@@ -163,15 +162,17 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
 
         // Check first if the user selected a different option
         if (!userChoice.equals(sortBy)) {
-            // Hide the error message
+            // Hide the error message and show the progress bar
             mErrorMessageTextView.setVisibility(View.INVISIBLE);
-            // Show the loading indicator
             mLoadingIndicator.setVisibility(View.VISIBLE);
-            // Set the member variable to the users selected option
+
+            // Save the user selection in the member variable
             sortBy = userChoice;
+
             // Save the user's preference in SharedPreferences
             mSharedPreferences.edit().putString("sortBy", sortBy).apply();
-            // Fetch new data with the new sort order
+
+            // Clear the list before fetching new data
             mMovies.clear();
             if (!sortBy.equals("favorites")) {
                 // Destroy the loader, we don't need it for fetching new data from the internet
@@ -213,7 +214,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         switch (id) {
             case ID_MOVIES_LOADER:
-
+                // Return a cursor with all the favorites from the db
                 return new CursorLoader(this,
                         FavoriteMoviesEntry.CONTENT_URI,
                         null,
@@ -228,7 +229,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.i(TAG, "onLoadFinished: " + data.getCount());
         // Hide the loading indicator
         mLoadingIndicator.setVisibility(View.INVISIBLE);
         if (data == null || data.getCount() == 0) {
@@ -254,6 +254,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         getSupportLoaderManager().restartLoader(ID_MOVIES_LOADER, null, this);
     }
 
+    // Helper method to show the corresponding error message
     private void showMessage() {
         if (sortBy.equals("favorites")) {
             mErrorMessageTextView.setText(getString(R.string.no_favorites_message));
