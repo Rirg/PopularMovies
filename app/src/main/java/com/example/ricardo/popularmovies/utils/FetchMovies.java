@@ -55,7 +55,7 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
     @Override
     protected String doInBackground(Void... voids) {
 
-        if (!isOnline()) return null;
+        if (!isOnline(mContext)) return null;
 
 
         String movieData = null;
@@ -146,8 +146,8 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
     }
 
     // Method for checking the current network status
-    public boolean isOnline() {
-        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+    public static boolean isOnline(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }

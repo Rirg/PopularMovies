@@ -1,15 +1,18 @@
 package com.example.ricardo.popularmovies.adapters;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.example.ricardo.popularmovies.R;
+import com.example.ricardo.popularmovies.data.FavoritesMoviesContract;
 import com.example.ricardo.popularmovies.pojos.Movie;
 import com.squareup.picasso.Picasso;
 
@@ -25,8 +28,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     private Context mContext;
     private OnItemClickListener mOnItemCLickListener;
 
+    private static final String TAG = "MovieAdapter";
+
     public interface OnItemClickListener {
-        void onSingleMovieClickListener(int pos);
+        void onSingleMovieClickListener(Movie movie);
     }
 
     public MovieAdapter(Context context, ArrayList<Movie> movies, OnItemClickListener onItemClickListener) {
@@ -57,7 +62,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
         ImageView posterImageView;
 
-        public MovieViewHolder(View itemView) {
+        MovieViewHolder(View itemView) {
             super(itemView);
 
             posterImageView = itemView.findViewById(R.id.poster_image_view);
@@ -66,21 +71,46 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         }
 
         void bind(int pos) {
-            if (mMovies.get(pos).getPosterUrl() != null) {
-                Picasso.with(mContext)
-                        .load(mMovies.get(pos).getPosterUrl())
-                        .placeholder(R.drawable.poster_placeholder)
-                        .into(posterImageView);
-            } else {
-                byte[] bitmapdata = mMovies.get(pos).getBlobPoster();
-                Bitmap bitmap = BitmapFactory.decodeByteArray(bitmapdata, 0, bitmapdata.length);
-                posterImageView.setImageBitmap(bitmap);
+            if (mMovies != null) {
+                if (mMovies.get(pos).getPosterUrl() != null) {
+                    Picasso.with(mContext)
+                            .load(mMovies.get(pos).getPosterUrl())
+                            .placeholder(R.drawable.poster_placeholder)
+                            .into(posterImageView);
+                } else if (mMovies.get(pos).getBlobPoster() != null) {
+                    byte[] bitmapdata = mMovies.get(pos).getBlobPoster();
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(bitmapdata, 0, bitmapdata.length);
+                    posterImageView.setImageBitmap(bitmap);
+                } else {
+                    posterImageView.setImageResource(R.drawable.poster_placeholder);
+                }
             }
+
         }
 
         @Override
         public void onClick(View view) {
-            mOnItemCLickListener.onSingleMovieClickListener(getAdapterPosition());
+            mOnItemCLickListener.onSingleMovieClickListener(mMovies.get(getAdapterPosition()));
         }
+    }
+
+    public void swapList(Cursor cursor, ArrayList<Movie> movies) {
+
+        if (cursor != null && cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                Movie movie = new Movie(cursor.getInt(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_ID)),
+                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_TITLE)),
+                        null,
+                        cursor.getBlob(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_POSTER)),
+                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_SYNOPSIS)),
+                        cursor.getDouble(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_RATING)),
+                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_RELEASE_DATE)));
+
+                movies.add(movie);
+            }
+        }
+        mMovies = movies;
+        Log.i(TAG, "swapList: " + "It changed!");
+        notifyDataSetChanged();
     }
 }

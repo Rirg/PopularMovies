@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.ricardo.popularmovies.adapters.ReviewsAdapter;
 import com.example.ricardo.popularmovies.data.FavoritesMoviesContract.FavoriteMoviesEntry;
@@ -33,31 +34,24 @@ import butterknife.ButterKnife;
 
 public class DetailActivity extends AppCompatActivity implements FetchMovies.OnTaskCompleted {
 
-    @BindView(R.id.tv_title)
-    TextView title;
+    // UI
+    @BindView(R.id.tv_title) TextView title;
+    @BindView(R.id.iv_poster) ImageView poster;
+    @BindView(R.id.tv_synopsis) TextView synopsis;
+    @BindView(R.id.tv_release_date) TextView releaseDate;
+    @BindView(R.id.tv_rating) TextView rating;
+    @BindView(R.id.btn_favorite) ImageButton favoriteBtn;
+    @BindView(R.id.ib_trailer) ImageButton trailerBtn;
+    @BindView(R.id.tv_trailer_title) TextView trailerTv;
 
-    @BindView(R.id.iv_poster)
-    ImageView poster;
-    @BindView(R.id.tv_synopsis)
-    TextView synopsis;
-    @BindView(R.id.tv_release_date)
-    TextView releaseDate;
-    @BindView(R.id.tv_rating)
-    TextView rating;
-    @BindView(R.id.btn_favorite)
-    ImageButton favoriteBtn;
-    @BindView(R.id.ib_trailer)
-    ImageButton trailerBtn;
-    @BindView(R.id.tv_trailer_title)
-    TextView trailerTv;
-
+    // Variables to save movie data
     private Movie mCurrentMovie;
-    private static final String TAG = "DetailActivity";
-    private boolean isSaved = false;
     private String trailerUrl;
     private ArrayList<Review> mReviews;
     private ReviewsAdapter mAdapter;
+    private boolean isSaved = false;
 
+    private static final String TAG = "DetailActivity";
     public static final String TRAILER_BASE_URL = "https://api.themoviedb.org/3/movie/%s/videos?api_key=ef83058e91d65966e65b63151aaaf75c";
     public static final String REVIEWS_BASE_URL = "https://api.themoviedb.org/3/movie/%s/reviews?api_key=ef83058e91d65966e65b63151aaaf75c";
 
@@ -73,8 +67,10 @@ public class DetailActivity extends AppCompatActivity implements FetchMovies.OnT
 
         // Create a new ArrayList to hold the reviews
         mReviews = new ArrayList<>();
+
         // Create an Adapter and pass in the ArrayList
         mAdapter = new ReviewsAdapter(this, mReviews);
+
         // Create and setup the RecyclerView
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.rv_reviews);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -89,29 +85,40 @@ public class DetailActivity extends AppCompatActivity implements FetchMovies.OnT
             mCurrentMovie.setBlobPoster(getIntent().getByteArrayExtra("blob"));
         }
 
+        // If there isn't Internet connection, then hide the Reviews and Trailer section
+        if (!FetchMovies.isOnline(this)) {
+            (findViewById(R.id.trailer_and_reviews_container)).setVisibility(View.GONE);
+        }
+
         new FetchMovies(this, this, REVIEWS_BASE_URL, String.valueOf(mCurrentMovie.getId()), 200).execute();
 
         final Uri uri = Uri.parse(FavoriteMoviesEntry.CONTENT_URI + "/" + mCurrentMovie.getId());
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         if (cursor.getCount() > 0) {
             isSaved = true;
-            favoriteBtn.setImageResource(R.drawable.ic_favorite_black);
+            favoriteBtn.setImageResource(R.drawable.ic_star);
         }
         cursor.close();
 
         new FetchMovies(DetailActivity.this, DetailActivity.this, TRAILER_BASE_URL, String.valueOf(mCurrentMovie.getId()), 300).execute();
 
         if (mCurrentMovie.getPosterUrl() != null) {
-            Picasso.with(this).load(mCurrentMovie.getPosterUrl()).into(poster);
+            Picasso.with(this)
+                    .load(mCurrentMovie.getPosterUrl())
+                    .placeholder(R.drawable.poster_placeholder)
+                    .into(poster);
         } else {
             byte[] blob = mCurrentMovie.getBlobPoster();
             Bitmap bmp = BitmapFactory.decodeByteArray(blob, 0, blob.length);
             poster.setImageBitmap(bmp);
         }
+        // Use substring() to get just the year from the release date
+        String release = mCurrentMovie.getReleaseDate();
+        String releaseYear = release.substring(0, Math.min(release.length(), 4));
 
         title.setText(mCurrentMovie.getTitle());
         synopsis.setText(mCurrentMovie.getSynopsis());
-        releaseDate.setText(mCurrentMovie.getReleaseDate());
+        releaseDate.setText(releaseYear);
         rating.setText(String.valueOf(mCurrentMovie.getRating()) + "/10");
 
         favoriteBtn.setOnClickListener(new View.OnClickListener() {
@@ -146,18 +153,22 @@ public class DetailActivity extends AppCompatActivity implements FetchMovies.OnT
                             });
                     // Get the content resolver and insert the new values
                     getContentResolver().insert(FavoriteMoviesEntry.CONTENT_URI, values);
+                    
                     // Change the variable to true, to avoid repeated movies in the db
                     isSaved = true;
+                    
                     // Change the favorite button to let known the user that the movie is already
                     // saved in the favorites db.
-                    favoriteBtn.setImageResource(R.drawable.ic_favorite_black);
+                    favoriteBtn.setImageResource(R.drawable.ic_star);
+
+                    Toast.makeText(DetailActivity.this, "Added to favorites", Toast.LENGTH_SHORT).show();
                 } else {
                     // If the user press the button when the movie is already saved, get the correct
                     // Uri and delete it from the db
                     Uri uri = Uri.parse(FavoriteMoviesEntry.CONTENT_URI + "/" + mCurrentMovie.getId());
                     getContentResolver().delete(uri, null, null);
                     isSaved = false;
-                    favoriteBtn.setImageResource(R.drawable.ic_favorite_border_black);
+                    favoriteBtn.setImageResource(R.drawable.ic_star_border);
                 }
             }
         });
@@ -175,8 +186,11 @@ public class DetailActivity extends AppCompatActivity implements FetchMovies.OnT
 
     @Override
     public void onTaskCompleted(Movie movie, Review review, String trailerKey, String trailerTitle) {
-        if (trailerKey != null) {
+        if (trailerKey != null && trailerTitle != null) {
+            // Append the trailer key to the base Youtube Url
             trailerUrl = "https://www.youtube.com/watch?v=" + trailerKey;
+
+            // Set the trailer title to the TextView
             trailerTv.setText(trailerTitle);
         }
 

@@ -45,7 +45,6 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="38dp"
             android:layout_marginStart="38dp"
-            android:layout_marginTop="8dp"
             android:orientation="vertical"
             app:layout_constraintLeft_toRightOf="@+id/iv_poster"
             app:layout_constraintTop_toTopOf="@+id/iv_poster">
@@ -70,7 +69,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:background="@android:color/transparent"
-                android:src="@drawable/ic_favorite_border_black" />
+                android:src="@drawable/ic_star_border" />
 
 
         </LinearLayout>
@@ -87,78 +86,88 @@
             app:layout_constraintTop_toBottomOf="@+id/iv_poster"
             tools:text="Curabitur arcu erat, accumsan id imperdiet et, porttitor at sem. Cras ultricies ligula sed magna dictum porta. Curabitur arcu erat, accumsan id imperdiet et, porttitor at sem." />
 
-        <View
-            android:id="@+id/separator_line"
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/trailer_and_reviews_container"
             android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_marginTop="12dp"
-            android:background="#000"
+            android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="@id/tv_synopsis"
             app:layout_constraintRight_toRightOf="@id/tv_synopsis"
-            app:layout_constraintTop_toBottomOf="@+id/tv_synopsis" />
+            app:layout_constraintTop_toBottomOf="@id/tv_synopsis">
 
-        <TextView
-            android:id="@+id/tv_trailer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/trailer"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
-            android:textColor="#000"
-            app:layout_constraintLeft_toLeftOf="@id/separator_line"
-            app:layout_constraintTop_toBottomOf="@id/separator_line" />
+            <View
+                android:id="@+id/separator_line"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:background="#000"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageButton
-            android:id="@+id/ib_trailer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_play_arrow_black"
-            app:layout_constraintLeft_toLeftOf="@id/tv_trailer"
-            app:layout_constraintTop_toBottomOf="@id/tv_trailer" />
 
-        <TextView
-            android:id="@+id/tv_trailer_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:maxLines="2"
-            app:layout_constraintBottom_toBottomOf="@id/ib_trailer"
-            app:layout_constraintLeft_toRightOf="@id/ib_trailer"
-            app:layout_constraintRight_toRightOf="@id/separator_line"
-            app:layout_constraintTop_toTopOf="@id/ib_trailer"
-            tools:text="Official trailer Sony Pictures" />
+            <TextView
+                android:id="@+id/tv_trailer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/trailer"
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
+                android:textColor="#000"
+                app:layout_constraintLeft_toLeftOf="@id/separator_line"
+                app:layout_constraintTop_toBottomOf="@id/separator_line" />
 
-        <View
-            android:id="@+id/separator_line_reviews"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_marginTop="12dp"
-            android:background="#000"
-            app:layout_constraintLeft_toLeftOf="@id/tv_synopsis"
-            app:layout_constraintRight_toRightOf="@id/tv_synopsis"
-            app:layout_constraintTop_toBottomOf="@+id/ib_trailer" />
+            <ImageButton
+                android:id="@+id/ib_trailer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_play_arrow_black"
+                app:layout_constraintLeft_toLeftOf="@id/tv_trailer"
+                app:layout_constraintTop_toBottomOf="@id/tv_trailer" />
 
-        <TextView
-            android:id="@+id/tv_reviews"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Reviews:"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
-            android:textColor="#000"
-            app:layout_constraintLeft_toLeftOf="@id/ib_trailer"
-            app:layout_constraintTop_toBottomOf="@id/separator_line_reviews" />
+            <TextView
+                android:id="@+id/tv_trailer_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:maxLines="2"
+                app:layout_constraintBottom_toBottomOf="@id/ib_trailer"
+                app:layout_constraintLeft_toRightOf="@id/ib_trailer"
+                app:layout_constraintRight_toRightOf="@id/separator_line"
+                app:layout_constraintTop_toTopOf="@id/ib_trailer"
+                tools:text="Official trailer Sony Pictures" />
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rv_reviews"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:layout_constraintLeft_toLeftOf="@id/tv_reviews"
-            app:layout_constraintRight_toRightOf="@id/separator_line_reviews"
-            app:layout_constraintTop_toBottomOf="@id/tv_reviews" />
+            <View
+                android:id="@+id/separator_line_reviews"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:background="#000"
+                app:layout_constraintLeft_toLeftOf="@id/separator_line"
+                app:layout_constraintRight_toRightOf="@id/separator_line"
+                app:layout_constraintTop_toBottomOf="@+id/ib_trailer" />
+
+            <TextView
+                android:id="@+id/tv_reviews"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/reviews"
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
+                android:textColor="#000"
+                app:layout_constraintLeft_toLeftOf="@id/ib_trailer"
+                app:layout_constraintTop_toBottomOf="@id/separator_line_reviews" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_reviews"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:layout_constraintLeft_toLeftOf="@id/tv_reviews"
+                app:layout_constraintRight_toRightOf="@id/separator_line_reviews"
+                app:layout_constraintTop_toBottomOf="@id/tv_reviews" />
+        </android.support.constraint.ConstraintLayout>
 
 
     </android.support.constraint.ConstraintLayout>

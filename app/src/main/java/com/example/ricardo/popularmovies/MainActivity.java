@@ -6,9 +6,13 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,7 +30,9 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements MovieAdapter.OnItemClickListener, FetchMovies.OnTaskCompleted {
+public class MainActivity extends AppCompatActivity implements MovieAdapter.OnItemClickListener,
+        FetchMovies.OnTaskCompleted,
+        LoaderManager.LoaderCallbacks<Cursor> {
 
     private ArrayList<Movie> mMovies;
     private MovieAdapter mAdapter;
@@ -41,8 +47,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
     // THE MOVIE DB constants
     private static final String API_KEY = BuildConfig.API_KEY;
     public static final String THE_MOVIE_DB_URL = "https://api.themoviedb.org/3/movie/%s?api_key=" + API_KEY;
-    private String sortBy;
+    private static final int ID_MOVIES_LOADER = 22;
 
+    // Variables to save the sort user preference
+    private String sortBy;
     private SharedPreferences mSharedPreferences;
 
     private static final String TAG = "MainActivity";
@@ -52,8 +60,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Bind the views using ButterKnife
         ButterKnife.bind(this);
 
+        // Get the SharedPreferences, if there isn't any saved value, then use "popular" as default
+        // sort criteria
         mSharedPreferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         sortBy = mSharedPreferences.getString("sortBy", "popular");
 
@@ -61,16 +72,19 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         if (savedInstanceState != null)
             mMovies = savedInstanceState.getParcelableArrayList("moviesList");
 
-        // If there isn't a movies list available then create a new one and fetch the data
+        // If there isn't a movies list available then create a new one
         if (mMovies == null) mMovies = new ArrayList<>();
 
+        // Check if the sort criteria isn't equal to "favorites" before fetching new data
         if (!sortBy.equals("favorites")) {
             mErrorMessageTextView.setVisibility(View.INVISIBLE);
             mLoadingIndicator.setVisibility(View.VISIBLE);
             new FetchMovies(this, this, THE_MOVIE_DB_URL, sortBy, 100).execute();
         }
+        // Create a LayoutManager for the RecyclerView
         RecyclerView.LayoutManager layoutManager;
-        // Check if the device is in portrait or landscape
+
+        // Check if the device is in portrait or landscape orientation
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             // Set 2 columns in the PORTRAIT orientation
             layoutManager = new GridLayoutManager(this, 2);
@@ -78,14 +92,17 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
             // Set 3 columns in the LANDSCAPE orientation
             layoutManager = new GridLayoutManager(this, 3);
         }
+        // Set the LayoutManager to the RecyclerView
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setHasFixedSize(true);
 
+        /// Create a new MovieAdapter and set it to the RecyclerView
         mAdapter = new MovieAdapter(this, mMovies, this);
         mRecyclerView.setAdapter(mAdapter);
 
+        // Get the favorites if the sort criteria is set to "favorites"
         if (sortBy.equals("favorites")) {
-            getFavorites();
+            getSupportLoaderManager().initLoader(ID_MOVIES_LOADER, null, this);
         }
     }
 
@@ -98,11 +115,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
     }
 
     @Override
-    public void onSingleMovieClickListener(int pos) {
+    public void onSingleMovieClickListener(Movie movie) {
         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-        intent.putExtra("movie", mMovies.get(pos));
-        if (mMovies.get(pos).getBlobPoster() != null) {
-            intent.putExtra("blob", mMovies.get(pos).getBlobPoster());
+        intent.putExtra("movie", movie);
+        if (movie.getBlobPoster() != null) {
+            intent.putExtra("blob", movie.getBlobPoster());
         }
         startActivity(intent);
     }
@@ -114,8 +131,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         // After the menu is inflated, check the correct option
         if (sortBy.equals("popular")) {
             menu.findItem(R.id.most_popular_sort_action).setChecked(true);
-        } else {
+        } else if (sortBy.equals("top_rated")){
             menu.findItem(R.id.highest_rated_sort_action).setChecked(true);
+        } else {
+            menu.findItem(R.id.favorites_sort_action).setChecked(true);
         }
         return true;
     }
@@ -144,66 +163,103 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
 
         // Check first if the user selected a different option
         if (!userChoice.equals(sortBy)) {
+            // Hide the error message
+            mErrorMessageTextView.setVisibility(View.INVISIBLE);
+            // Show the loading indicator
+            mLoadingIndicator.setVisibility(View.VISIBLE);
             // Set the member variable to the users selected option
             sortBy = userChoice;
             // Save the user's preference in SharedPreferences
             mSharedPreferences.edit().putString("sortBy", sortBy).apply();
             // Fetch new data with the new sort order
             mMovies.clear();
-            mAdapter.notifyDataSetChanged();
             if (!sortBy.equals("favorites")) {
+                // Destroy the loader, we don't need it for fetching new data from the internet
+                getSupportLoaderManager().destroyLoader(ID_MOVIES_LOADER);
+
+                // Get new data from the helper class using TheMoviesDB API
                 new FetchMovies(this, this, THE_MOVIE_DB_URL, sortBy, 100).execute();
+
+                // Send a null cursor and the current list of movies, because we aren't getting
+                // anything from the db.
+                mAdapter.swapList(null, mMovies);
             } else {
-                getFavorites();
+                // Restart the loader because we need the data from the db
+                getSupportLoaderManager().restartLoader(ID_MOVIES_LOADER, null, this);
             }
         }
         return true;
     }
 
 
-
     @Override
     public void onTaskCompleted(Movie movie, Review review, String trailerKey, String trailerTitle) {
-        // Hide the progress
+        // Hide the loading indicator
         mLoadingIndicator.setVisibility(View.INVISIBLE);
 
         // Check if the variable isn't null before adding it to the list
         if (movie != null) {
+            // Hide the error message, add the new movie to the adapter and notify.
+            mErrorMessageTextView.setVisibility(View.INVISIBLE);
             mMovies.add(movie);
             mAdapter.notifyDataSetChanged();
         } else {
-            mErrorMessageTextView.setVisibility(View.VISIBLE);
+            // The movie object is null, show an error message to the user
+            showMessage();
         }
     }
 
-    private void getFavorites() {
-        // Clear the list before query
-        mMovies.clear();
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        switch (id) {
+            case ID_MOVIES_LOADER:
 
-        // Query all the favorites using the provider
-        Cursor cursor = getContentResolver().query(
-                FavoriteMoviesEntry.CONTENT_URI, null, null, null, null);
-
-        // Check if the user saved any favorites
-        if (cursor != null && cursor.getCount() > 0) {
-            mErrorMessageTextView.setVisibility(View.INVISIBLE);
-            while (cursor.moveToNext()) {
-                Movie movie = new Movie(cursor.getInt(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_MOVIE_ID)),
-                        cursor.getString(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_MOVIE_TITLE)),
+                return new CursorLoader(this,
+                        FavoriteMoviesEntry.CONTENT_URI,
                         null,
-                        cursor.getBlob(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_MOVIE_POSTER)),
-                        cursor.getString(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_SYNOPSIS)),
-                        cursor.getDouble(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_RATING)),
-                        cursor.getString(cursor.getColumnIndex(FavoriteMoviesEntry.COLUMN_RELEASE_DATE)));
+                        null,
+                        null,
+                        null);
 
-                mMovies.add(movie);
-            }
-            cursor.close();
-            mAdapter.notifyDataSetChanged();
-        } else {
-            // Show a message if the user doesn't have any favorite movie saved yet.
-            mErrorMessageTextView.setText("You don't have any favorites yet!");
-            mErrorMessageTextView.setVisibility(View.VISIBLE);
+            default:
+                throw new RuntimeException("Loader Not Implemented: " + id);
         }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.i(TAG, "onLoadFinished: " + data.getCount());
+        // Hide the loading indicator
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
+        if (data == null || data.getCount() == 0) {
+            // Show a message if the user doesn't have any favorite movie saved yet.
+           showMessage();
+        } else {
+            mErrorMessageTextView.setVisibility(View.INVISIBLE);
+        }
+        // Send a new empty list with the new cursor to the adapter
+        mAdapter.swapList(data, new ArrayList<Movie>());
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mAdapter.swapList(null, new ArrayList<Movie>());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Restart the loader if the sort criteria is set to favorites
+        if (sortBy.equals("favorites"))
+        getSupportLoaderManager().restartLoader(ID_MOVIES_LOADER, null, this);
+    }
+
+    private void showMessage() {
+        if (sortBy.equals("favorites")) {
+            mErrorMessageTextView.setText(getString(R.string.no_favorites_message));
+        } else {
+            mErrorMessageTextView.setText(R.string.internet_error_message);
+        }
+        mErrorMessageTextView.setVisibility(View.VISIBLE);
     }
 }
