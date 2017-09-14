@@ -19,6 +19,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.ricardo.popularmovies.adapters.MovieAdapter;
+import com.example.ricardo.popularmovies.data.FavoritesMoviesContract;
 import com.example.ricardo.popularmovies.data.FavoritesMoviesContract.FavoriteMoviesEntry;
 import com.example.ricardo.popularmovies.pojos.Movie;
 import com.example.ricardo.popularmovies.pojos.Review;
@@ -66,19 +67,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         mSharedPreferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         sortBy = mSharedPreferences.getString("sortBy", "popular");
 
-        // Get the movies list from bundle if it isn't null
-        if (savedInstanceState != null)
-            mMovies = savedInstanceState.getParcelableArrayList("moviesList");
+        mMovies = new ArrayList<>();
 
-        // If there isn't a movies list available then create a new one
-        if (mMovies == null) mMovies = new ArrayList<>();
 
-        // Check if the sort criteria isn't equal to "favorites" before fetching new data
-        if (!sortBy.equals("favorites")) {
-            mErrorMessageTextView.setVisibility(View.INVISIBLE);
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-            new FetchMovies(this, this, THE_MOVIE_DB_URL, sortBy, FetchMovies.MOVIES_CODE).execute();
-        }
         // Create a LayoutManager for the RecyclerView
         RecyclerView.LayoutManager layoutManager;
 
@@ -98,18 +89,39 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         mAdapter = new MovieAdapter(this, mMovies, this);
         mRecyclerView.setAdapter(mAdapter);
 
-        // Get the favorites if the sort criteria is set to "favorites"
-        if (sortBy.equals("favorites")) {
-            getSupportLoaderManager().initLoader(ID_MOVIES_LOADER, null, this);
+    }
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        if (mMovies != null && mMovies.size() > 0) {
+            outState.putParcelableArrayList("moviesList", mMovies);
+        }
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Just fetch new data when the ArrayList is empty
+        if (mMovies.size() == 0) {
+            if (!sortBy.equals("favorites")) {
+                mErrorMessageTextView.setVisibility(View.INVISIBLE);
+                mLoadingIndicator.setVisibility(View.VISIBLE);
+                new FetchMovies(this, this, THE_MOVIE_DB_URL, sortBy, FetchMovies.MOVIES_CODE).execute();
+            }
+            // Restart the loader if the sort criteria is set to favorites
+            else if (sortBy.equals("favorites")) {
+                getSupportLoaderManager().restartLoader(ID_MOVIES_LOADER, null, this);
+            }
         }
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        if (mMovies.size() > 0) {
-            outState.putParcelableArrayList("moviesList", mMovies);
-        }
-        super.onSaveInstanceState(outState);
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mMovies = savedInstanceState.getParcelableArrayList("moviesList");
+        mAdapter.swapList(mMovies);
     }
 
     @Override
@@ -127,12 +139,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         // After the menu is inflated, check the correct option
-        if (sortBy.equals("popular")) {
-            menu.findItem(R.id.most_popular_sort_action).setChecked(true);
-        } else if (sortBy.equals("top_rated")){
-            menu.findItem(R.id.highest_rated_sort_action).setChecked(true);
-        } else {
-            menu.findItem(R.id.favorites_sort_action).setChecked(true);
+        switch (sortBy) {
+            case "popular":
+                menu.findItem(R.id.most_popular_sort_action).setChecked(true);
+                break;
+            case "top_rated":
+                menu.findItem(R.id.highest_rated_sort_action).setChecked(true);
+                break;
+            case "favorites":
+                menu.findItem(R.id.favorites_sort_action).setChecked(true);
+                break;
         }
         return true;
     }
@@ -183,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
 
                 // Send a null cursor and the current list of movies, because we aren't getting
                 // anything from the db.
-                mAdapter.swapList(null, mMovies);
+                mAdapter.swapList(mMovies);
             } else {
                 // Restart the loader because we need the data from the db
                 getSupportLoaderManager().restartLoader(ID_MOVIES_LOADER, null, this);
@@ -194,16 +210,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
 
 
     @Override
-    public void onTaskCompleted(Movie movie, Review review, String trailerKey, String trailerTitle) {
+    public void onTaskCompleted(ArrayList<Movie> movies, ArrayList<Review> reviews, String trailerKey, String trailerTitle) {
         // Hide the loading indicator
         mLoadingIndicator.setVisibility(View.INVISIBLE);
 
         // Check if the variable isn't null before adding it to the list
-        if (movie != null) {
+        if (movies != null) {
             // Hide the error message, add the new movie to the adapter and notify.
             mErrorMessageTextView.setVisibility(View.INVISIBLE);
-            mMovies.add(movie);
-            mAdapter.notifyDataSetChanged();
+            mMovies = movies;
+            mAdapter.swapList(mMovies);
         } else {
             // The movie object is null, show an error message to the user
             showMessage();
@@ -233,25 +249,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
         mLoadingIndicator.setVisibility(View.INVISIBLE);
         if (data == null || data.getCount() == 0) {
             // Show a message if the user doesn't have any favorite movie saved yet.
-           showMessage();
+            showMessage();
         } else {
             mErrorMessageTextView.setVisibility(View.INVISIBLE);
         }
-        // Send a new empty list with the new cursor to the adapter
-        mAdapter.swapList(data, new ArrayList<Movie>());
+        getFavorites(data);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mAdapter.swapList(null, new ArrayList<Movie>());
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Restart the loader if the sort criteria is set to favorites
-        if (sortBy.equals("favorites"))
-        getSupportLoaderManager().restartLoader(ID_MOVIES_LOADER, null, this);
+        mAdapter.swapList(null);
     }
 
     // Helper method to show the corresponding error message
@@ -262,5 +269,24 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnIt
             mErrorMessageTextView.setText(R.string.internet_error_message);
         }
         mErrorMessageTextView.setVisibility(View.VISIBLE);
+    }
+
+    private void getFavorites(Cursor cursor) {
+        ArrayList<Movie> movies = new ArrayList<>();
+        if (cursor != null && cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                Movie movie = new Movie(cursor.getInt(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_ID)),
+                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_TITLE)),
+                        null,
+                        cursor.getBlob(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_POSTER)),
+                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_SYNOPSIS)),
+                        cursor.getDouble(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_RATING)),
+                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_RELEASE_DATE)));
+
+                movies.add(movie);
+            }
+        }
+        mMovies = movies;
+        mAdapter.swapList(mMovies);
     }
 }

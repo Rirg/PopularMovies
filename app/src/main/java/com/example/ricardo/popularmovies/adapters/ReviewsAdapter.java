@@ -63,5 +63,12 @@ public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewsV
         }
     }
 
+    public void swapList(ArrayList<Review> reviews) {
+        if (reviews != null) {
+            mReviews = reviews;
+            notifyDataSetChanged();
+        }
+    }
+
 }
 

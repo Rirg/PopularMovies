@@ -34,14 +34,22 @@ import butterknife.ButterKnife;
 public class DetailActivity extends AppCompatActivity implements FetchMovies.OnTaskCompleted {
 
     // UI
-    @BindView(R.id.tv_title) TextView title;
-    @BindView(R.id.iv_poster) ImageView poster;
-    @BindView(R.id.tv_synopsis) TextView synopsis;
-    @BindView(R.id.tv_release_date) TextView releaseDate;
-    @BindView(R.id.tv_rating) TextView rating;
-    @BindView(R.id.btn_favorite) ImageButton favoriteBtn;
-    @BindView(R.id.ib_trailer) ImageButton trailerBtn;
-    @BindView(R.id.tv_trailer_title) TextView trailerTv;
+    @BindView(R.id.tv_title)
+    TextView title;
+    @BindView(R.id.iv_poster)
+    ImageView poster;
+    @BindView(R.id.tv_synopsis)
+    TextView synopsis;
+    @BindView(R.id.tv_release_date)
+    TextView releaseDate;
+    @BindView(R.id.tv_rating)
+    TextView rating;
+    @BindView(R.id.btn_favorite)
+    ImageButton favoriteBtn;
+    @BindView(R.id.ib_trailer)
+    ImageButton trailerBtn;
+    @BindView(R.id.tv_trailer_title)
+    TextView trailerTv;
 
     // Variables to save movie data
     private Movie mCurrentMovie;
@@ -51,8 +59,9 @@ public class DetailActivity extends AppCompatActivity implements FetchMovies.OnT
     private boolean isSaved = false;
 
     // Trailer and reviews base urls
-    public static final String TRAILER_BASE_URL = "https://api.themoviedb.org/3/movie/%s/videos?api_key=ef83058e91d65966e65b63151aaaf75c";
-    public static final String REVIEWS_BASE_URL = "https://api.themoviedb.org/3/movie/%s/reviews?api_key=ef83058e91d65966e65b63151aaaf75c";
+    public static final String API_KEY = BuildConfig.API_KEY;
+    public static final String TRAILER_BASE_URL = "https://api.themoviedb.org/3/movie/%s/videos?api_key=" + API_KEY;
+    public static final String REVIEWS_BASE_URL = "https://api.themoviedb.org/3/movie/%s/reviews?api_key=" + API_KEY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +92,7 @@ public class DetailActivity extends AppCompatActivity implements FetchMovies.OnT
             mCurrentMovie = getIntent().getParcelableExtra("movie");
         }
         // Check the blob extra
-        if (getIntent().hasExtra("blob"))  {
+        if (getIntent().hasExtra("blob")) {
             // Get the poster from a byte array
             mCurrentMovie.setBlobPoster(getIntent().getByteArrayExtra("blob"));
         }
@@ -93,10 +102,6 @@ public class DetailActivity extends AppCompatActivity implements FetchMovies.OnT
             (findViewById(R.id.trailer_and_reviews_container)).setVisibility(View.GONE);
         }
 
-        // Fetch the reviews from the internet using the util class using the corresponding code
-        new FetchMovies(this, this, REVIEWS_BASE_URL,
-                String.valueOf(mCurrentMovie.getId()), FetchMovies.REVIEWS_CODE).execute();
-
         final Uri uri = Uri.parse(FavoriteMoviesEntry.CONTENT_URI + "/" + mCurrentMovie.getId());
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         if (cursor.getCount() > 0) {
@@ -105,17 +110,13 @@ public class DetailActivity extends AppCompatActivity implements FetchMovies.OnT
         }
         cursor.close();
 
-        // Fetch the trailer from the internet using the util class using the corresponding code
-        new FetchMovies(DetailActivity.this, DetailActivity.this, TRAILER_BASE_URL,
-                String.valueOf(mCurrentMovie.getId()), FetchMovies.TRAILER_CODE).execute();
-
         // Check if there is a Url or Blob from the current movie and load the image
         if (mCurrentMovie.getPosterUrl() != null) {
             Picasso.with(this)
                     .load(mCurrentMovie.getPosterUrl())
                     .placeholder(R.drawable.poster_placeholder)
                     .into(poster);
-        } else if (mCurrentMovie.getBlobPoster() != null){
+        } else if (mCurrentMovie.getBlobPoster() != null) {
             byte[] blob = mCurrentMovie.getBlobPoster();
             Bitmap bmp = BitmapFactory.decodeByteArray(blob, 0, blob.length);
             poster.setImageBitmap(bmp);
@@ -156,17 +157,21 @@ public class DetailActivity extends AppCompatActivity implements FetchMovies.OnT
 
                                     values.put(FavoriteMoviesEntry.COLUMN_MOVIE_POSTER, out.toByteArray());
                                 }
+
                                 @Override
-                                public void onBitmapFailed(Drawable errorDrawable) {}
+                                public void onBitmapFailed(Drawable errorDrawable) {
+                                }
+
                                 @Override
-                                public void onPrepareLoad(Drawable placeHolderDrawable) {}
+                                public void onPrepareLoad(Drawable placeHolderDrawable) {
+                                }
                             });
                     // Get the content resolver and insert the new values
                     getContentResolver().insert(FavoriteMoviesEntry.CONTENT_URI, values);
-                    
+
                     // Change the boolean to true, to avoid repeated movies in the db
                     isSaved = true;
-                    
+
                     // Change the favorite button to let known the user that the movie is already
                     // saved in the favorites db.
                     favoriteBtn.setImageResource(R.drawable.ic_star);
@@ -196,7 +201,7 @@ public class DetailActivity extends AppCompatActivity implements FetchMovies.OnT
 
 
     @Override
-    public void onTaskCompleted(Movie movie, Review review, String trailerKey, String trailerTitle) {
+    public void onTaskCompleted(ArrayList<Movie> movies, ArrayList<Review> reviews, String trailerKey, String trailerTitle) {
         if (trailerKey != null && trailerTitle != null) {
             // Append the trailer key to the base Youtube Url
             trailerUrl = "https://www.youtube.com/watch?v=" + trailerKey;
@@ -205,9 +210,47 @@ public class DetailActivity extends AppCompatActivity implements FetchMovies.OnT
             trailerTv.setText(trailerTitle);
         }
 
-        if (review != null) {
-            mReviews.add(review);
-            mAdapter.notifyDataSetChanged();
+        if (reviews != null) {
+            mReviews = reviews;
+            mAdapter.swapList(reviews);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Just fetch new data when the ArrayList is empty
+        if (mReviews.size() == 0) {
+            // Fetch the reviews from the internet using the util class using the corresponding code
+            new FetchMovies(this, this, REVIEWS_BASE_URL,
+                    String.valueOf(mCurrentMovie.getId()), FetchMovies.REVIEWS_CODE).execute();
+        }
+
+        if (trailerUrl == null || trailerTv.getText().toString().isEmpty()) {
+            // Fetch the trailer from the internet using the util class using the corresponding code
+            new FetchMovies(DetailActivity.this, DetailActivity.this, TRAILER_BASE_URL,
+                    String.valueOf(mCurrentMovie.getId()), FetchMovies.TRAILER_CODE).execute();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        if (mReviews != null) {
+            outState.putParcelableArrayList("reviews", mReviews);
+        }
+        if (trailerUrl != null && !trailerTv.getText().toString().isEmpty()) {
+            outState.putString("trailer", trailerUrl);
+            outState.putString("trailerTitle", trailerTv.getText().toString());
+        }
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mReviews = savedInstanceState.getParcelableArrayList("reviews");
+        trailerUrl = savedInstanceState.getString("trailer");
+        trailerTv.setText(savedInstanceState.getString("trailerTitle"));
+        mAdapter.swapList(mReviews);
     }
 }

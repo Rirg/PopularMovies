@@ -1,7 +1,6 @@
 package com.example.ricardo.popularmovies.adapters;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
@@ -11,7 +10,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.example.ricardo.popularmovies.R;
-import com.example.ricardo.popularmovies.data.FavoritesMoviesContract;
 import com.example.ricardo.popularmovies.pojos.Movie;
 import com.squareup.picasso.Picasso;
 
@@ -95,24 +93,23 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     /**
      * This is a helper method to swap the movies list passing a cursor from the CursorLoader
-     * @param cursor has the entire data from the favorites db
      * @param movies the ArrayList containing the current List or an empty one
      */
-    public void swapList(Cursor cursor, ArrayList<Movie> movies) {
+    public void swapList(ArrayList<Movie> movies) {
 
-        if (cursor != null && cursor.getCount() > 0) {
-            while (cursor.moveToNext()) {
-                Movie movie = new Movie(cursor.getInt(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_ID)),
-                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_TITLE)),
-                        null,
-                        cursor.getBlob(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_POSTER)),
-                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_SYNOPSIS)),
-                        cursor.getDouble(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_RATING)),
-                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_RELEASE_DATE)));
-
-                movies.add(movie);
-            }
-        }
+//        if (cursor != null && cursor.getCount() > 0) {
+//            while (cursor.moveToNext()) {
+//                Movie movie = new Movie(cursor.getInt(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_ID)),
+//                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_TITLE)),
+//                        null,
+//                        cursor.getBlob(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_POSTER)),
+//                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_SYNOPSIS)),
+//                        cursor.getDouble(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_RATING)),
+//                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_RELEASE_DATE)));
+//
+//                movies.add(movie);
+//            }
+//        }
         mMovies = movies;
         notifyDataSetChanged();
     }

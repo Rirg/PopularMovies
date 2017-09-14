@@ -4,7 +4,6 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.example.ricardo.popularmovies.pojos.Movie;
 import com.example.ricardo.popularmovies.pojos.Review;
@@ -17,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -40,7 +40,7 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
     public static final int TRAILER_CODE = 300;
 
     public interface OnTaskCompleted {
-        void onTaskCompleted(Movie movie, Review review, String trailerKey, String trailerTitle);
+        void onTaskCompleted(ArrayList<Movie> movies, ArrayList <Review> reviews, String trailerKey, String trailerTitle);
     }
 
     public FetchMovies(Context context, OnTaskCompleted listener, String baseUrl, String sortBy, int code) {
@@ -85,7 +85,6 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
 
-            Log.i(TAG, "getResponseFromHttpUrl: " + url.toString());
             InputStream in = urlConnection.getInputStream();
 
             Scanner scanner = new Scanner(in);
@@ -111,6 +110,7 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
 
             switch (mCode) {
                 case MOVIES_CODE:
+                    ArrayList<Movie> movies = new ArrayList<>();
                     for (int i = 0; i < results.length(); i++) {
                         JSONObject jsonObject = results.getJSONObject(i);
                         Movie movie = new Movie(jsonObject.getLong("id"),
@@ -120,18 +120,20 @@ public class FetchMovies extends AsyncTask<Void, Void, String> {
                                 jsonObject.getString("overview"),
                                 jsonObject.getDouble("vote_average"),
                                 jsonObject.getString("release_date"));
-                        listener.onTaskCompleted(movie, null, null, null);
+                        movies.add(movie);
                     }
+                    listener.onTaskCompleted(movies, null, null, null);
                     break;
 
                 case REVIEWS_CODE:
+                    ArrayList<Review> reviews = new ArrayList<>();
                     for (int i = 0; i < results.length(); i++) {
                         JSONObject jsonObject = results.getJSONObject(i);
                         Review review = new Review(jsonObject.getString("author"),
                                 jsonObject.getString("content"));
-
-                        listener.onTaskCompleted(null, review, null, null);
+                        reviews.add(review);
                     }
+                    listener.onTaskCompleted(null, reviews, null, null);
                     break;
 
                 case TRAILER_CODE:
