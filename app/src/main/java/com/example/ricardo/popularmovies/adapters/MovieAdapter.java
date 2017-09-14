@@ -25,8 +25,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     private Context mContext;
     private OnItemClickListener mOnItemCLickListener;
 
-    private static final String TAG = "MovieAdapter";
-
     public interface OnItemClickListener {
         void onSingleMovieClickListener(Movie movie);
     }
@@ -96,20 +94,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
      * @param movies the ArrayList containing the current List or an empty one
      */
     public void swapList(ArrayList<Movie> movies) {
-
-//        if (cursor != null && cursor.getCount() > 0) {
-//            while (cursor.moveToNext()) {
-//                Movie movie = new Movie(cursor.getInt(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_ID)),
-//                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_TITLE)),
-//                        null,
-//                        cursor.getBlob(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_MOVIE_POSTER)),
-//                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_SYNOPSIS)),
-//                        cursor.getDouble(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_RATING)),
-//                        cursor.getString(cursor.getColumnIndex(FavoritesMoviesContract.FavoriteMoviesEntry.COLUMN_RELEASE_DATE)));
-//
-//                movies.add(movie);
-//            }
-//        }
         mMovies = movies;
         notifyDataSetChanged();
     }
